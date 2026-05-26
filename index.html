@@ -710,10 +710,22 @@
         <table class="modal-table" id="mTable"></table>
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Compatible con:</div>
         <div class="modal-compat" id="mCompat"></div>
-        <div class="modal-actions">
-          <button class="btn-primary" onclick="showToast('Solicitud de compra registrada ✓');closeModal()">Comprar / Solicitar</button>
-          <button class="btn-secondary" onclick="showToast('Consulta enviada por WhatsApp ✓');closeModal()">WhatsApp</button>
-        </div>
+       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+  <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase">Cantidad:</span>
+  <button onclick="cambiarCantidad(-1)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:16px;cursor:pointer;line-height:1">−</button>
+  <span id="modalCantidad" style="font-size:14px;font-weight:700;min-width:24px;text-align:center">1</span>
+  <button onclick="cambiarCantidad(1)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:16px;cursor:pointer;line-height:1">+</button>
+</div>
+<div class="modal-actions">
+  <button class="btn-primary" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>
+  <button class="btn-secondary" onclick="showToast('Consulta enviada por WhatsApp ✓');closeModal()">WhatsApp</button>
+</div>
+<div id="carritoResumen" style="display:none;margin-top:12px;background:var(--bg);border-radius:8px;padding:10px;font-size:11px">
+  <div style="font-weight:700;margin-bottom:6px;color:var(--black)">🛒 Carrito actual:</div>
+  <div id="carritoItems"></div>
+  <div id="carritoTotal" style="margin-top:6px;font-weight:700;color:var(--gold-dark)"></div>
+  <button onclick="vaciarCarrito()" style="margin-top:8px;font-size:10px;background:none;border:none;color:var(--muted);cursor:pointer;text-decoration:underline">Vaciar carrito</button>
+</div>
       </div>
     </div>
   </div>
@@ -1080,7 +1092,62 @@ function doSearch(){
   else{location.href='#catalogo';showToast('Buscando: '+q);}
 }
 document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+// ─── CARRITO ─────────────────────────────────────────────────────────────────
+let carrito = [];
 
+function cambiarCantidad(delta) {
+  var span = document.getElementById('modalCantidad');
+  var val = parseInt(span.textContent) + delta;
+  if (val < 1) val = 1;
+  span.textContent = val;
+}
+
+function agregarAlCarrito() {
+  var cantidad = parseInt(document.getElementById('modalCantidad').textContent);
+  var nombre = document.getElementById('mName').textContent;
+  var precio = document.getElementById('mPrice').textContent;
+  if (!nombre || nombre === '') { showToast('Error: no hay producto seleccionado'); return; }
+  var existing = null;
+  for (var i = 0; i < carrito.length; i++) {
+    if (carrito[i].nombre === nombre) { existing = carrito[i]; break; }
+  }
+  if (existing) {
+    existing.cantidad += cantidad;
+  } else {
+    carrito.push({ nombre: nombre, precio: precio, cantidad: cantidad });
+  }
+  renderCarrito();
+  showToast('✓ ' + cantidad + ' × ' + nombre + ' agregado al carrito');
+}
+
+function renderCarrito() {
+  var resumen = document.getElementById('carritoResumen');
+  var itemsDiv = document.getElementById('carritoItems');
+  var totalDiv = document.getElementById('carritoTotal');
+  if (carrito.length === 0) {
+    resumen.style.display = 'none';
+    return;
+  }
+  resumen.style.display = 'block';
+  var html = '';
+  var totalUnidades = 0;
+  for (var i = 0; i < carrito.length; i++) {
+    var item = carrito[i];
+    totalUnidades += item.cantidad;
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px">' +
+      '<span>' + item.cantidad + ' × ' + item.nombre + '</span>' +
+      '<span style="color:var(--muted)">' + item.precio + ' c/u</span>' +
+      '</div>';
+  }
+  itemsDiv.innerHTML = html;
+  totalDiv.textContent = 'Total: ' + totalUnidades + ' unidad(es) en el carrito';
+}
+
+function vaciarCarrito() {
+  carrito = [];
+  renderCarrito();
+  showToast('Carrito vaciado');
+}
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg){
   const t=document.getElementById('toast');
