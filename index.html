@@ -540,8 +540,7 @@
 <section id="por-vehiculo">
   <div class="inner">
     <div class="section-label">Búsqueda por vehículo o maquinaria</div>
-    <div class="veh-form">
-      <div class="veh-form">
+   <div class="veh-form">
   <select id="vTipo" onchange="updateMarcas()">
     <option value="">Tipo de vehículo</option>
     <option value="automovil">Automóvil / Camioneta</option>
@@ -560,7 +559,6 @@
   </select>
   <button class="veh-search-btn" style="grid-column:span 4;padding:10px" onclick="searchVehicle()">Buscar filtros para este vehículo</button>
 </div>
-    </div>
     <div class="veh-results" id="vehResults"></div>
   </div>
 </section>
@@ -582,7 +580,7 @@
       <div class="ship-grid">
         <div>
           <label>Departamento de destino</label>
-          <select id="dpto">
+          <select id="dpto" onchange="updateCiudades()">
             <option value="">Seleccionar...</option>
             <option value="1">Guaviare</option>
             <option value="2">Cundinamarca / Bogotá</option>
@@ -599,14 +597,12 @@
           </select>
         </div>
         <div>
-          <label>Ciudad o municipio</label>
-          <input type="text" id="ciudad" placeholder="Ej: Villavicencio, Bogotá..."/>
-        </div>
-        <button class="ship-btn" onclick="calcShipping()">Calcular tiempo de envío</button>
-        <div class="ship-result" id="shipResult">
-          <div class="ship-km" id="shipKm">— km aprox.</div>
-          <div class="ship-days" id="shipDays">— días hábiles</div>
-        </div>
+          <div>
+  <label>Ciudad o municipio</label>
+  <select id="ciudad" style="width:100%;padding:9px 12px;border:.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--text);background:var(--white);outline:none">
+    <option value="">Selecciona primero un departamento</option>
+  </select>
+</div>
       </div>
     </div>
   </div>
@@ -962,29 +958,117 @@ function searchVehicle(){
 }
 
 // ─── SHIPPING CALC ────────────────────────────────────────────────────────────
-const shipData={
-  '1':{km:'0–80 km',days:'1 a 2 días hábiles'},
-  '2':{km:'approx. 320 km',days:'2 a 3 días hábiles'},
-  '3':{km:'approx. 190 km',days:'1 a 2 días hábiles'},
-  '4':{km:'approx. 520 km',days:'3 a 5 días hábiles'},
-  '5':{km:'approx. 680 km',days:'4 a 6 días hábiles'},
-  '6':{km:'approx. 310 km',days:'2 a 3 días hábiles'},
-  '7':{km:'approx. 780 km',days:'4 a 6 días hábiles'},
-  '8':{km:'approx. 940 km',days:'5 a 7 días hábiles'},
-  '9':{km:'approx. 640 km',days:'3 a 5 días hábiles'},
-  '10':{km:'approx. 1.200 km',days:'6 a 8 días hábiles'},
-  '11':{km:'approx. 860 km',days:'5 a 7 días hábiles'},
-  '12':{km:'approx. 850 km',days:'5 a 8 días hábiles'},
+// ─── CIUDADES POR DEPARTAMENTO ───────────────────────────────────────────────
+const ciudadesDpto = {
+  '1': ['San José del Guaviare','El Retorno','Calamar','Miraflores'],
+  '2': ['Bogotá D.C.','Soacha','Facatativá','Zipaquirá','Chía','Fusagasugá','Girardot','Mosquera','Madrid','Funza','Cajicá','La Mesa','Villeta'],
+  '3': ['Villavicencio','Acacías','Granada','Puerto López','San Martín','Cumaral','Restrepo','Puerto Gaitán','Castilla la Nueva','Lejanías'],
+  '4': ['Puerto Carreño','La Primavera','Santa Rosalía','Cumaribo'],
+  '5': ['Mitú','Carurú','Taraira','Yavaraté','Papunaua'],
+  '6': ['Florencia','Neiva','San Vicente del Caguán','Puerto Rico','El Doncello','La Montañita','Belén de los Andaquíes','Curillo'],
+  '7': ['Medellín','Bello','Itagüí','Envigado','Rionegro','Apartadó','Turbo','Manizales','Pereira','Armenia'],
+  '8': ['Cali','Buenaventura','Palmira','Tuluá','Buga','Cartago','Jamundí','Yumbo','Florida','Pradera'],
+  '9': ['Bucaramanga','Floridablanca','Girón','Piedecuesta','Barrancabermeja','San Gil','Socorro','Vélez'],
+  '10': ['Barranquilla','Cartagena','Soledad','Malambo','Santa Marta','Sincelejo','Montería','Valledupar'],
+  '11': ['Pasto','Ipiales','Tumaco','Túquerres','La Unión','Mocoa','Puerto Asís','Sibundoy','Valle del Guamuez'],
+  '12': ['Leticia','Puerto Nariño','Inírida','Barranco Minas'],
 };
-function calcShipping(){
-  const dpto=document.getElementById('dpto').value;
-  const ciudad=document.getElementById('ciudad').value.trim();
-  const res=document.getElementById('shipResult');
-  if(!dpto){showToast('Selecciona un departamento de destino');return;}
-  const d=shipData[dpto];
-  document.getElementById('shipKm').textContent=d.km+' desde San José del Guaviare'+(ciudad?' a '+ciudad:'');
-  document.getElementById('shipDays').textContent=d.days;
-  res.classList.add('show');
+
+function updateCiudades(){
+  const dpto = document.getElementById('dpto').value;
+  const sel  = document.getElementById('ciudad');
+  sel.innerHTML = '<option value="">Selecciona una ciudad...</option>';
+  if(!dpto) return;
+  (ciudadesDpto[dpto]||[]).forEach(c=>{
+    const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o);
+  });
+}
+
+// ─── ASESOR VIRTUAL ───────────────────────────────────────────────────────────
+const asesorContext = {
+  productos: products,
+  marcas: ['Toyota','Chevrolet','Ford','Mazda','Nissan','Renault','Mitsubishi','John Deere','New Holland','Caterpillar','Komatsu','Volvo CE'],
+};
+
+let asesorHistory = [];
+
+function openAsesor(){
+  document.getElementById('asesorOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(asesorHistory.length===0){
+    addBotMsg('¡Hola! Soy el asesor virtual de MEG@FILTROS. 👋\n\nPuedo ayudarte a encontrar el filtro exacto para tu vehículo o maquinaria. Cuéntame:\n\n• ¿Qué referencia de filtro necesitas?\n• ¿O para qué vehículo o máquina buscas filtros?');
+  }
+}
+
+function closeAsesor(){
+  document.getElementById('asesorOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function addBotMsg(text){
+  const div=document.createElement('div');
+  div.className='msg bot';
+  div.style.whiteSpace='pre-line';
+  div.textContent=text;
+  document.getElementById('asesorMessages').appendChild(div);
+  scrollAsesor();
+}
+
+function addUserMsg(text){
+  const div=document.createElement('div');
+  div.className='msg user';
+  div.textContent=text;
+  document.getElementById('asesorMessages').appendChild(div);
+  scrollAsesor();
+}
+
+function scrollAsesor(){
+  const m=document.getElementById('asesorMessages');
+  m.scrollTop=m.scrollHeight;
+}
+
+async function sendAsesor(){
+  const input=document.getElementById('asesorInput');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  addUserMsg(text);
+  asesorHistory.push({role:'user',content:text});
+
+  document.getElementById('asesorTyping').style.display='block';
+  scrollAsesor();
+
+  const systemPrompt = `Eres el asesor virtual de MEG@FILTROS S.A.S, una empresa ubicada en San José del Guaviare, Colombia, especializada en filtros, aceites, grasas y lubricantes para vehículos y maquinaria.
+
+Tu trabajo es ayudar a los clientes a encontrar el filtro correcto para su vehículo o maquinaria. Responde siempre en español, de forma amable, breve y útil.
+
+Productos disponibles en inventario:
+${products.map(p=>`- ${p.name} (REF: ${p.ref}) — Compatible con: ${p.compat} — Precio: ${p.price} — ${p.badge==='ok'?'Stock disponible':'Stock bajo'}`).join('\n')}
+
+Si el cliente pregunta por un vehículo o referencia que no está en el inventario, dile que puede contactarnos por WhatsApp al +57 321 474 5230 para verificar disponibilidad.
+
+Responde siempre de forma concisa, máximo 4 líneas. No uses markdown ni asteriscos.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: systemPrompt,
+        messages: asesorHistory
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.find(b=>b.type==='text')?.text || 'No pude procesar tu consulta. Contáctanos por WhatsApp al +57 321 474 5230.';
+    asesorHistory.push({role:'assistant',content:reply});
+    document.getElementById('asesorTyping').style.display='none';
+    addBotMsg(reply);
+  } catch(e){
+    document.getElementById('asesorTyping').style.display='none';
+    addBotMsg('Hubo un error de conexión. Por favor contáctanos directamente por WhatsApp al +57 321 474 5230.');
+  }
 }
 
 // ─── SEARCH ──────────────────────────────────────────────────────────────────
