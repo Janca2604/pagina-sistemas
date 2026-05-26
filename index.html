@@ -541,33 +541,25 @@
   <div class="inner">
     <div class="section-label">Búsqueda por vehículo o maquinaria</div>
     <div class="veh-form">
-      <select id="vTipo">
-        <option value="">Tipo de vehículo</option>
-        <option>Automóvil / Camioneta</option>
-        <option>Camión / Tractocamión</option>
-        <option>Maquinaria agrícola</option>
-        <option>Maquinaria de construcción</option>
-      </select>
-      <select id="vMarca">
-        <option value="">Marca</option>
-        <option>Toyota</option><option>Chevrolet</option><option>Ford</option><option>Mazda</option>
-        <option>Nissan</option><option>Renault</option><option>Mitsubishi</option>
-        <option>John Deere</option><option>New Holland</option><option>Massey Ferguson</option>
-        <option>Kubota</option><option>Caterpillar</option><option>Komatsu</option><option>Volvo CE</option>
-      </select>
-      <select id="vModelo">
-        <option value="">Modelo</option>
-        <option>Hilux</option><option>Land Cruiser</option><option>Dyna</option>
-        <option>5075E</option><option>TT75</option><option>3650</option><option>323</option>
-        <option>390F</option><option>PC200</option>
-      </select>
-      <select id="vAnio">
-        <option value="">Año</option>
-        <option>2024</option><option>2023</option><option>2022</option><option>2021</option>
-        <option>2020</option><option>2019</option><option>2018</option><option>2017</option>
-        <option>2016</option><option>2015</option>
-      </select>
-      <button class="veh-search-btn" style="grid-column:span 4;padding:10px" onclick="searchVehicle()">Buscar filtros para este vehículo</button>
+      <div class="veh-form">
+  <select id="vTipo" onchange="updateMarcas()">
+    <option value="">Tipo de vehículo</option>
+    <option value="automovil">Automóvil / Camioneta</option>
+    <option value="camion">Camión / Tractocamión</option>
+    <option value="agricola">Maquinaria agrícola</option>
+    <option value="construccion">Maquinaria de construcción</option>
+  </select>
+  <select id="vMarca" onchange="updateModelos()">
+    <option value="">Marca</option>
+  </select>
+  <select id="vModelo" onchange="updateAnios()">
+    <option value="">Modelo</option>
+  </select>
+  <select id="vAnio">
+    <option value="">Año</option>
+  </select>
+  <button class="veh-search-btn" style="grid-column:span 4;padding:10px" onclick="searchVehicle()">Buscar filtros para este vehículo</button>
+</div>
     </div>
     <div class="veh-results" id="vehResults"></div>
   </div>
@@ -845,9 +837,118 @@ function startCarTimer(){carTimer=setInterval(()=>moveCarousel(1),5000);}
 startCarTimer();
 
 // ─── VEHICLE SEARCH ──────────────────────────────────────────────────────────
+// ─── VEHICLE SEARCH — DATOS ENCADENADOS ──────────────────────────────────────
+const vehicleCatalog = {
+  automovil: {
+    Toyota:      { modelos: ['Hilux','Land Cruiser','Fortuner','Corolla','Yaris','RAV4','Prado'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Chevrolet:   { modelos: ['Tracker','Captiva','S10','Trailblazer','Onix','Sail','Spark'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Ford:        { modelos: ['Ranger','Explorer','EcoSport','F-150','Territory','Bronco'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Mazda:       { modelos: ['CX-5','CX-30','Mazda 3','Mazda 6','BT-50'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Nissan:      { modelos: ['Frontier','Patrol','X-Trail','Kicks','Sentra','Urvan'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Renault:     { modelos: ['Duster','Sandero','Logan','Captur','Koleos','Oroch'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Mitsubishi:  { modelos: ['L200','Montero','Outlander','Eclipse Cross','ASX'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Hyundai:     { modelos: ['Tucson','Santa Fe','Creta','i10','Accent','Ioniq'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Kia:         { modelos: ['Sportage','Sorento','Seltos','Rio','Picanto','Stonic'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+  },
+  camion: {
+    Mercedes:    { modelos: ['Actros','Atego','Axor','Sprinter'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Volvo:       { modelos: ['FH','FM','FMX','FE','FL'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Scania:      { modelos: ['R Series','S Series','P Series','G Series'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Freightliner:{ modelos: ['Cascadia','Columbia','M2','Argosy'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Kenworth:    { modelos: ['T800','T680','W900','T880'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Chevrolet:   { modelos: ['NHR','NPR','NQR','FTR','N300'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Internacional:{ modelos: ['9800','9400','7600','4400'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Mack:        { modelos: ['Anthem','Pinnacle','Granite','TerraPro'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+  },
+  agricola: {
+    'John Deere':     { modelos: ['5075E','5095M','6110B','6120E','6155M','7215R','8320R','9470R'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    'New Holland':    { modelos: ['TT75','T6.180','T7.270','TM7020','TC5090'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    'Massey Ferguson':{ modelos: ['3650','4709','5711','6713','7724','8730'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Kubota:           { modelos: ['M7060','L3901','L4760','M5-091','MX5200'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Fendt:            { modelos: ['720 Vario','724 Vario','828 Vario','930 Vario'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Case:             { modelos: ['Puma 165','Maxxum 150','Optum 300','Steiger 620'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+  },
+  construccion: {
+    Caterpillar: { modelos: ['320','323','330','336','349','390F','D6T','D8T','980M','990K'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Komatsu:     { modelos: ['PC200','PC300','PC490','WA380','WA470','D65','D155'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    'Volvo CE':  { modelos: ['EC220','EC300','EC480','L90','L120','A30','A40'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Hitachi:     { modelos: ['ZX200','ZX350','ZX490','ZW220','ZW310'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Liebherr:    { modelos: ['R920','R950','R970','LTM 1100','LTM 1200'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+    Doosan:      { modelos: ['DX225','DX300','DX380','DL300','DL420'], anios: [2024,2023,2022,2021,2020,2019,2018,2017,2016,2015] },
+  }
+};
+
+function resetSelect(id, placeholder){
+  const sel = document.getElementById(id);
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+}
+
+function updateMarcas(){
+  const tipo = document.getElementById('vTipo').value;
+  resetSelect('vMarca','Marca');
+  resetSelect('vModelo','Modelo');
+  resetSelect('vAnio','Año');
+  if(!tipo) return;
+  const marcas = Object.keys(vehicleCatalog[tipo] || {});
+  const sel = document.getElementById('vMarca');
+  marcas.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); });
+}
+
+function updateModelos(){
+  const tipo = document.getElementById('vTipo').value;
+  const marca = document.getElementById('vMarca').value;
+  resetSelect('vModelo','Modelo');
+  resetSelect('vAnio','Año');
+  if(!tipo||!marca) return;
+  const modelos = (vehicleCatalog[tipo]?.[marca]?.modelos) || [];
+  const sel = document.getElementById('vModelo');
+  modelos.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); });
+}
+
+function updateAnios(){
+  const tipo = document.getElementById('vTipo').value;
+  const marca = document.getElementById('vMarca').value;
+  resetSelect('vAnio','Año');
+  if(!tipo||!marca) return;
+  const anios = (vehicleCatalog[tipo]?.[marca]?.anios) || [];
+  const sel = document.getElementById('vAnio');
+  anios.forEach(a => { const o=document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
+}
+
 function searchVehicle(){
-  const res=document.getElementById('vehResults');
-  res.innerHTML=vehicleData.map(v=>`
+  const tipo  = document.getElementById('vTipo').value;
+  const marca = document.getElementById('vMarca').value;
+  const modelo= document.getElementById('vModelo').value;
+  const anio  = document.getElementById('vAnio').value;
+  const res   = document.getElementById('vehResults');
+
+  if(!tipo||!marca||!modelo||!anio){
+    showToast('Selecciona tipo, marca, modelo y año para buscar');
+    return;
+  }
+
+  const query = `${marca} ${modelo} ${anio}`.toLowerCase();
+  let matches = vehicleData.filter(v => v.name.toLowerCase().includes(marca.toLowerCase()) || v.name.toLowerCase().includes(modelo.toLowerCase()));
+
+  if(matches.length === 0){
+    res.innerHTML = `
+      <div class="veh-card" style="grid-column:span 2">
+        <div class="veh-body" style="padding:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:8px">${marca} ${modelo} ${anio}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Consulta nuestros asesores para este vehículo</div>
+          <div class="veh-filters-list">
+            <span class="veh-filter-tag">Filtro de aceite</span>
+            <span class="veh-filter-tag">Filtro de aire</span>
+            <span class="veh-filter-tag">Filtro de combustible</span>
+            <span class="veh-filter-tag">Filtro hidráulico</span>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:var(--muted)">📞 Contáctanos con la referencia de tu vehículo para obtener los filtros exactos.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  res.innerHTML = matches.map(v=>`
     <div class="veh-card">
       <div class="veh-header">
         <img src="${v.img}" alt="${v.name}" onerror="this.src='https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&q=80'"/>
