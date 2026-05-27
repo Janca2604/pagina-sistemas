@@ -1149,7 +1149,8 @@ function renderProducts(filter){
         '<span class="badge '+(p.badge==='ok'?'badge-ok':'badge-low')+'">'+(p.badge==='ok'?'✓ Stock disponible':'⚠ Stock bajo')+'</span>' +
         '<div class="product-compat">'+p.compat+'</div>' +
         '<div class="product-price">'+p.price+'</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-top:10px">' +
+        '<div style="font-size:10px;color:var(--muted);margin-top:6px">Disponible: <strong>'+p.stock+' und</strong></div>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
           '<button onclick="cambiarCantidadFiltro('+p.id+',-1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:15px;cursor:pointer;line-height:1">−</button>' +
           '<span id="cantFiltro'+p.id+'" style="font-size:13px;font-weight:700;min-width:20px;text-align:center">1</span>' +
           '<button onclick="cambiarCantidadFiltro('+p.id+',1)" style="width:26px;height:26px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:15px;cursor:pointer;line-height:1">+</button>' +
@@ -1205,7 +1206,8 @@ function openModal(id){
     <tr><td>Stock disponible</td><td>${p.stock} und</td></tr>
   `;
   document.getElementById('mCompat').textContent=p.compat;
-  document.getElementById('modalCantidad').textContent='1';
+  modalStockActual = p.stock;
+    document.getElementById('modalCantidad').textContent='1';
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -1533,18 +1535,25 @@ function mostrarDiasEnvio(){
 // ─── CARRITO ─────────────────────────────────────────────────────────────────
 var carrito = [];
 
+
+var modalStockActual = 999;
+
 function cambiarCantidad(delta){
   var span = document.getElementById('modalCantidad');
   var val = parseInt(span.textContent) + delta;
   if(val < 1) val = 1;
+ if(val > modalStockActual){ val = modalStockActual; showToast('⚠ Máximo en stock: '+modalStockActual+' und'); }
   span.textContent = val;
 }
 
 function cambiarCantidadFiltro(id, delta){
   var span = document.getElementById('cantFiltro'+id);
   if(!span) return;
-  var val = parseInt(span.textContent) + delta;
+var p = products.find(function(x){ return x.id===id; });
+  var stock = p ? p.stock : 999;
+    var val = parseInt(span.textContent) + delta;
   if(val < 1) val = 1;
+if(val > stock){ val = stock; showToast('⚠ Solo hay '+stock+' und en stock'); }
   span.textContent = val;
 }
 
@@ -1553,9 +1562,17 @@ function agregarFiltroAlCarrito(id){
   if(!p) return;
   var span = document.getElementById('cantFiltro'+id);
   var cantidad = span ? parseInt(span.textContent) : 1;
-  agregarItemCarrito(p.name, p.price, cantidad);
+ var enCarrito = 0;
+  for(var i=0;i<carrito.length;i++){ if(carrito[i].nombre===p.name) enCarrito=carrito[i].cantidad; }
+  if(enCarrito + cantidad > p.stock){
+    var disponible = p.stock - enCarrito;
+    if(disponible <= 0){ showToast('⚠ Ya tienes el máximo en stock en el carrito'); return; }
+    cantidad = disponible;
+    showToast('⚠ Ajustado a '+cantidad+' (máximo disponible)');
+  }
+  agregarItemCarrito(p.name, p.price, cantidad, p.stock);
   if(span) span.textContent = '1';
-  showToast('✓ '+cantidad+' × '+p.name+' agregado al carrito');
+ if(cantidad > 0) showToast('✓ '+cantidad+' × '+p.name+' agregado al carrito');
 }
 
 function cambiarCantidadAceite(idx, delta){
@@ -1606,10 +1623,16 @@ function agregarAlCarrito(){
   var nombre = document.getElementById('mName').textContent;
   var precio = document.getElementById('mPrice').textContent;
   if(!nombre){ showToast('Error: no hay producto seleccionado'); return; }
-  agregarItemCarrito(nombre, precio, cantidad);
+ var enCarrito = 0;
+  for(var i=0;i<carrito.length;i++){ if(carrito[i].nombre===nombre) enCarrito=carrito[i].cantidad; }
+  if(enCarrito + cantidad > modalStockActual){
+    var disponible = modalStockActual - enCarrito;
+    if(disponible <= 0){ showToast('⚠ Ya tienes el máximo en stock en el carrito'); return; }
+    cantidad = disponible;
+  }
+  agregarItemCarrito(nombre, precio, cantidad, modalStockActual);
   showToast('✓ '+cantidad+' × '+nombre+' agregado al carrito');
 }
-
 function agregarAceiteAlCarrito(idx){
   var span = document.getElementById('cantAceite'+idx);
   var cantidad = parseInt(span.textContent);
@@ -1620,17 +1643,21 @@ function agregarAceiteAlCarrito(idx){
   showToast('✓ '+cantidad+' × '+nombre+' agregado al carrito');
 }
 
-function agregarItemCarrito(nombre, precio, cantidad){
+
+function agregarItemCarrito(nombre, precio, cantidad, stock){
   var existing = null;
   for(var i=0; i<carrito.length; i++){
     if(carrito[i].nombre === nombre){ existing = carrito[i]; break; }
   }
-  if(existing){ existing.cantidad += cantidad; }
-  else{ carrito.push({nombre:nombre, precio:precio, cantidad:cantidad}); }
+  if(existing){ 
+    var maxStock = existing.stock || stock || 999;
+    existing.cantidad = Math.min(existing.cantidad + cantidad, maxStock);
+  } else{
+     carrito.push({nombre:nombre, precio:precio, cantidad:cantidad, stock: stock || 999});
+  }
   actualizarContadorCarrito();
   renderCarritoPanelItems();
 }
-
 function actualizarContadorCarrito(){
   var total = 0;
   for(var i=0; i<carrito.length; i++) total += carrito[i].cantidad;
@@ -1668,10 +1695,16 @@ function renderCarritoPanelItems(){
 }
 
 function cambiarCantidadCarrito(idx, delta){
-  carrito[idx].cantidad += delta;
-  if(carrito[idx].cantidad < 1){ carrito.splice(idx,1); }
+ var item = carrito[idx];
+  var nueva = item.cantidad + delta;
+  if(nueva < 1){ carrito.splice(idx,1); }
+  else {
+    var maxStock = item.stock || 999;
+    if(nueva > maxStock){ nueva = maxStock; showToast('⚠ Máximo en stock: '+maxStock+' und'); }
+    item.cantidad = nueva;
+  }  
   actualizarContadorCarrito();
-  renderCarritoPanelItems();
+    renderCarritoPanelItems();
 }
 
 function eliminarItemCarrito(idx){
