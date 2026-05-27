@@ -931,9 +931,9 @@
   <div style="padding:16px;border-top:1px solid var(--border)">
     <div id="carritoPanelTotal" style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:12px"></div>
     <button onclick="vaciarCarrito()" style="width:100%;background:none;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:11px;color:var(--muted);cursor:pointer;margin-bottom:8px">Vaciar carrito</button>
-    <button onclick="abrirPasarela()" style="width:100%;background:var(--gold);color:var(--black);border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer">💳 Pagar ahora</button>
-  </div>
-</div>
+      </div>
+</div><button onclick="abrirPasarela()" style="width:100%;background:var(--gold);color:var(--black);border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer">💳 Pagar ahora</button>
+
 
 <!-- PASARELA DE PAGOS -->
 <div id="pasarelaOverlay" onclick="cerrarPasarelaFondo(event)">
@@ -1147,10 +1147,10 @@ const aceites = [
 {name:'Ursa TDX 15W-40 — Garrafa', type:'Diésel SHPD Mineral', desc:'Aceite SHPD Chevron con tecnología ISOSYN® y bases Grupo II. Para motores diésel turboalimentados con intervalos de cambio extendidos. Reduce desgaste, maximiza limpieza del motor y optimiza combustible. Ideal para transporte pesado, minería y construcción.', price:'$555.000 / garrafa 19 L', img:'https://rylsa.com.co/wp-content/uploads/2024/10/Ursa-TDX-15W40-Ci4-Balde-5-Gal.jpg'},];
 
 const vehicleData = [
-  {name:'Toyota Hilux 2020',img:'https://cdn.motor1.com/images/mgl/lpxLJ/s1/4x3/hilux3-4front.webp',filters:['Filtro aceite WL7242','Filtro aire AF1145','Filtro diésel CF2234','Filtro habitáculo CA10235']},
-  {name:'John Deere 5075E',img:'https://johndeere.widen.net/content/ram58wjams/webp/5075e-r2g082699-large.webp?crop=true&w=800&h=600&retina=false&keep=c',filters:['Filtro aceite motor HF6540','Filtro aire AF2312','Filtro combustible CF1900','Filtro hidráulico HF6540']},
-  {name:'Caterpillar 320D',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaoehEhBxKLT5tDo4SslqcLFLOBwI2zDKqlw&s',filters:['Filtro aceite OF9031','Filtro aire AF2211','Filtro combustible CF3412','Filtro piloto HP3542']},
-  {name:'Chevrolet N300 2019',img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl7rjevdeRAzyDOS3volNRjKKe2Lf6wdgvcw&s',filters:['Filtro aceite WL7242','Filtro aire AF3564','Filtro combustible CF1828']},
+  {name:'Toyota Hilux 2020',img:'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&q=80',filters:['Filtro aceite WL7242','Filtro aire AF1145','Filtro diésel CF2234','Filtro habitáculo CA10235']},
+  {name:'John Deere 5075E',img:'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=600&q=80',filters:['Filtro aceite motor HF6540','Filtro aire AF2312','Filtro combustible CF1900','Filtro hidráulico HF6540']},
+  {name:'Caterpillar 320D',img:'https://images.unsplash.com/photo-1504222490345-c075b7878b96?w=600&q=80',filters:['Filtro aceite OF9031','Filtro aire AF2211','Filtro combustible CF3412','Filtro piloto HP3542']},
+  {name:'Chevrolet N300 2019',img:'https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=600&q=80',filters:['Filtro aceite WL7242','Filtro aire AF3564','Filtro combustible CF1828']},
 ];
 
 // ─── RENDER PRODUCTS ─────────────────────────────────────────────────────────
